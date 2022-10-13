@@ -6,7 +6,7 @@ const locationBtn = document.querySelector('.location-btn');
 const dropdownCont = document.querySelector('.dropdown-cont');
 const bottomCont = document.querySelector('.bottom');
 const widgetCont = document.querySelector('.widget-cont');
-const hourCont = document.querySelector('.hours-cont');
+const hoursCont = document.querySelector('.hours-cont');
 
 let dropdownOptions = document.querySelectorAll('.option-btn');
 let hovered = false;
@@ -19,6 +19,135 @@ let imageSrc = {
     snow: './images/snow.png',
     sun: './images/sun.png',
     suncloud: './images/suncloud.png'
+}
+
+class Option {
+    constructor(main, support = '', lat, lon) {
+        this.main = main;
+        this.support = support;
+        this.lat = lat;
+        this.lon = lon;
+      }
+    build() {
+        const optionCont = document.createElement('button');
+        optionCont.classList.add('option-btn');
+        optionCont.innerText = `${this.main}, ${this.support}`;
+        optionCont.value = `${this.lat}, ${this.lon}`;
+
+        return optionCont
+    }
+}
+
+class Widget {
+    constructor(infoObject) {
+        this.title = infoObject.title;
+        this.temp = infoObject.temp;
+        this.feelsLike = infoObject.feelsLike;
+        this.rise = infoObject.rise;
+        this.set = infoObject.set;
+        this.src = infoObject.src;
+    }
+    build() {
+        const wCont = document.createElement('div');
+        wCont.classList.add('w-cont');
+
+        wCont.append(this.img(), this.wTitle(), this.temps(), this.sunset());
+
+        return wCont
+    }
+    wTitle() {
+        const wTitle = document.createElement('h3');
+        wTitle.classList.add('w-title', 'w-text');
+        wTitle.innerText = this.title;
+
+        return wTitle
+    }
+    temps() {
+        const tempCont = document.createElement('div');
+        tempCont.classList.add('w-sub');
+
+        const wATemp = document.createElement('h3');
+        wATemp.classList.add('w-atemp', 'w-subtitle', 'w-text');
+        wATemp.innerText = `Temp: ${Math.round(this.temp)}˚C`;
+
+        const wFLTemp = document.createElement('h3');
+        wFLTemp.classList.add('w-atemp', 'w-subtitle', 'w-text');
+        wFLTemp.innerText = `Feels: ${Math.round(this.feelsLike)}˚C`;
+
+        tempCont.append(wATemp, wFLTemp);
+
+        return tempCont
+    }
+    sunset() {
+        const sunsetCont = document.createElement('div');
+        sunsetCont.classList.add('w-sub');
+
+        const sRiseCont = document.createElement('div');
+        sRiseCont.classList.add('sun-cont');
+
+        const sRiseImg = document.createElement('img');
+        sRiseImg.classList.add('sun-img');
+        sRiseImg.src = "./images/sunrise.png";
+        sRiseImg.alt = "sunrise";
+
+        const wSRise = document.createElement('h3');
+        wSRise.classList.add('w-srise', 'w-subtitle', 'w-text');
+        wSRise.innerText = `${this.rise}`;
+
+        const sSetCont = document.createElement('div');
+        sSetCont.classList.add('sun-cont');
+
+        const sSetImg = document.createElement('img');
+        sSetImg.classList.add('sun-img', 'sunset-img');
+        sSetImg.src = "./images/sunset.png";
+        sSetImg.alt = "sunset";
+
+        const wSSet = document.createElement('h3');
+        wSSet.classList.add('w-sset', 'w-subtitle', 'w-text');
+        wSSet.innerText = `${this.set}`;
+
+        sRiseCont.append(sRiseImg, wSRise);
+        sSetCont.append(sSetImg, wSSet);
+
+        sunsetCont.append(sRiseCont, sSetCont);
+
+        return sunsetCont
+    }
+    img() {
+        const wImg = document.createElement('img');
+        wImg.classList.add('w-img');
+        wImg.src = this.src;
+
+        return wImg
+    }
+}
+
+class HourWidget {
+    constructor(infoObject) {
+        this.temp = infoObject.temp;
+        this.time = infoObject.time;
+        this.src = infoObject.src;
+    }
+    build() {
+        const dayCont = document.createElement('div');
+        dayCont.classList.add('hour-cont');
+
+        const dayImg = document.createElement('img');
+        dayImg.classList.add('hour-img');
+        dayImg.src = this.src;
+
+        const dayTemp = document.createElement('h3');
+        dayTemp.classList.add('hour-temp', 'w-subtitle', 'w-text');
+        dayTemp.innerText = `${Math.round(this.temp)}˚C`;
+
+        const day = document.createElement('h3');
+        day.classList.add('hour', 'w-subtitle', 'w-text');
+        day.innerText = `${this.time}`;
+
+        dayCont.append(dayImg, dayTemp, day);
+
+        return dayCont
+    }
 }
 
 async function searchDay(dest) {
@@ -57,7 +186,7 @@ async function searchHours(dest) {
         const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${dest.latitude}&lon=${dest.longitude}&cnt=5&appid=cfb3643bbe5fcd28991d13d72a8fe170&units=metric`)
         const data = await response.json();
 
-        hourCont.innerHTML = ``;
+        hoursCont.innerHTML = ``;
 
         Object.values(data.list).forEach((value) => {
             let infoObject = {
@@ -66,10 +195,11 @@ async function searchHours(dest) {
                 src: checkImgSrc(value.weather[0].main)
             }
 
-            const widget = new HourWidget(infoObject);
+            const widget = new HourWidget(infoObject).build();
 
-            hourCont.append(widget.build());
+            hoursCont.append(widget);
         });
+
     } catch (error) {
         console.error(`Oops, an error occured with the API: ${error}`)
     }
@@ -119,8 +249,12 @@ function geoFindMe(e) {
 async function autoComplete() {
     let input = searchInput.value;
 
-    if (input.length === 0) return dropdownCont.innerHTML = ``;
-    
+    if (input.length === 0) {
+        dropdownCont.innerHTML = ``;
+        dropdownCont.style.display = 'none';
+        return 
+    }
+
     try {
         if (input.length === 0) return
 
@@ -135,9 +269,13 @@ async function autoComplete() {
             dropdownCont.append(option.build());
         });
 
+        if (dropdownCont.childNodes.length > 0) dropdownCont.style.display = 'block';
+
         addDropdownListeners();
     } catch (error) {
         dropdownCont.innerHTML = ``;
+        dropdownCont.style.display = 'none';
+
         console.error(`Most likely typed too fast for a FREE API: ${error}`)
     }
 }
@@ -146,6 +284,7 @@ function closeDropdown() {
     if (hovered) return
 
     dropdownCont.innerHTML = ``;
+    dropdownCont.style.display = 'none';
 }
 
 function inputOption(e) {
@@ -199,144 +338,11 @@ function updateStorage() {
     localStorage.setItem("recent-location", JSON.stringify(destination));
 }
 
-class Option {
-    constructor(main, support = '', lat, lon) {
-        this.main = main;
-        this.support = support;
-        this.lat = lat;
-        this.lon = lon;
-      }
-    build() {
-        const optionCont = document.createElement('button');
-        optionCont.classList.add('option-btn');
-        optionCont.innerText = `${this.main}, ${this.support}`;
-        optionCont.value = `${this.lat}, ${this.lon}`;
-
-        return optionCont
-    }
+function displayDropdown() {
+    console.log(this)
 }
 
-class Widget {
-    constructor(infoObject) {
-        this.title = infoObject.title;
-        this.temp = infoObject.temp;
-        this.feelsLike = infoObject.feelsLike;
-        this.rise = infoObject.rise;
-        this.set = infoObject.set;
-        this.src = infoObject.src;
-    }
-    build() {
-        const wCont = document.createElement('div');
-        wCont.classList.add('w-cont');
-
-        wCont.append(this.left(), this.right());
-
-        return wCont
-    }
-    left() {
-        const leftCont = document.createElement('div');
-        leftCont.classList.add('w-left', 'w-sides');
-
-        const wTitle = document.createElement('h2');
-        wTitle.classList.add('w-title', 'w-text');
-        wTitle.innerText = this.title;
-
-        leftCont.append(wTitle, this.temps(), this.sunset())
-
-        return leftCont
-    }
-    temps() {
-        const tempCont = document.createElement('div');
-        tempCont.classList.add('w-sub');
-
-        const wATemp = document.createElement('h4');
-        wATemp.classList.add('w-atemp', 'w-subtitle', 'w-text');
-        wATemp.innerText = `Temp: ${Math.round(this.temp)}˚C`;
-
-        const wFLTemp = document.createElement('h4');
-        wFLTemp.classList.add('w-atemp', 'w-subtitle', 'w-text');
-        wFLTemp.innerText = `Feels like: ${Math.round(this.feelsLike)}˚C`;
-
-        tempCont.append(wATemp, wFLTemp);
-
-        return tempCont
-    }
-    sunset() {
-        const sunsetCont = document.createElement('div');
-        sunsetCont.classList.add('w-sub');
-
-        const sRiseCont = document.createElement('div');
-        sRiseCont.classList.add('sun-cont');
-
-        const sRiseImg = document.createElement('img');
-        sRiseImg.classList.add('sun-img');
-        sRiseImg.src = "./images/sunrise.png";
-        sRiseImg.alt = "sunrise";
-
-        const wSRise = document.createElement('h4');
-        wSRise.classList.add('w-srise', 'w-subtitle', 'w-text');
-        wSRise.innerText = `${this.rise}`;
-
-        const sSetCont = document.createElement('div');
-        sSetCont.classList.add('sun-cont');
-
-        const sSetImg = document.createElement('img');
-        sSetImg.classList.add('sun-img', 'sunset-img');
-        sSetImg.src = "./images/sunset.png";
-        sSetImg.alt = "sunset";
-
-        const wSSet = document.createElement('h4');
-        wSSet.classList.add('w-sset', 'w-subtitle', 'w-text');
-        wSSet.innerText = `${this.set}`;
-
-        sRiseCont.append(sRiseImg, wSRise);
-        sSetCont.append(sSetImg, wSSet);
-
-        sunsetCont.append(sRiseCont, sSetCont);
-
-        return sunsetCont
-    }
-    right() {
-        const rightCont = document.createElement('div');
-        rightCont.classList.add('w-right', 'w-sides');
-
-        const wImg = document.createElement('img');
-        wImg.classList.add('w-img');
-        wImg.src = this.src;
-
-        rightCont.append(wImg);
-
-        return rightCont
-    }
-}
-
-class HourWidget {
-    constructor(infoObject) {
-        this.temp = infoObject.temp;
-        this.time = infoObject.time;
-        this.src = infoObject.src;
-    }
-    build() {
-        const dayCont = document.createElement('div');
-        dayCont.classList.add('hour-cont');
-
-        const dayImg = document.createElement('img');
-        dayImg.classList.add('hour-img');
-        dayImg.src = this.src;
-
-        const dayTemp = document.createElement('h4');
-        dayTemp.classList.add('hour-temp', 'w-subtitle', 'w-text');
-        dayTemp.innerText = `${Math.round(this.temp)}˚C`;
-
-        const day = document.createElement('h4');
-        day.classList.add('hour', 'w-subtitle', 'w-text');
-        day.innerText = `${this.time}`;
-
-        dayCont.append(dayImg, dayTemp, day);
-
-        return dayCont
-    }
-}
+loadStorage();
 
 searchInput.addEventListener('input', autoComplete);
 locationBtn.addEventListener('click', geoFindMe);
@@ -362,4 +368,16 @@ dropdownCont.addEventListener('mouseleave', () => {
     hovered = false;
 });
 
-loadStorage();
+let hover = false;
+
+setTimeout(() => {
+    const hourConts = hoursCont.querySelectorAll('.hour-cont');
+
+    hourConts.forEach(cont => cont.addEventListener('mouseenter', scaleWidget))
+}, 100);
+
+function scaleWidget() {
+    this.style.animation = "scaleUp 400ms";
+    // this.style.scale = "1.15";
+    // console.log(this)
+}
