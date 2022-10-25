@@ -154,10 +154,11 @@ Classes
     align-items: flex-start;
     place-items: flex-start;
     justify-items: center;
-    gap: 20px;
+    gap: 40px;
+    margin-top: 25px;
 }
 .widget-cont {
-    min-width: 550px;
+    min-width: 600px;
     width: 50%;
     max-width: 900px;
 }
@@ -201,19 +202,13 @@ Classes
     width: 40px;
 }
 .hours-cont {
-    min-width: 500px;
+    min-width: 650px;
     width: 45%;
     max-width: 850px;
     height: fit-content;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
-}
-.hours-cont:first-child {
-    border-radius: 20px 0 0 20px;
-}
-.hours-cont:last-child {
-    border-radius: 0 20px 20px 0;
+    gap: 20px;
 }
 .hour-cont {
     width: 100%;
@@ -224,6 +219,7 @@ Classes
     padding: 20px 0;
     gap: 10px;
     background: var(--main);
+    border-radius: 20px;
 }
 .hour-img {
     width: 80%;
@@ -240,40 +236,6 @@ Typography
 .search-input::placeholder {
     font-style: italic;
     color: var(--grey);
-}
-
-@keyframes scaleUp {
-    from {
-        scale: 1;
-    }
-    to {
-        scale: 1.15;
-    }
-}
-@keyframes scaleDown {
-    from {
-        scale: 1.15;
-    }
-    to {
-        scale: 1;
-    }
-}
-@keyframes scaleWUp {
-    from {
-        scale: 0.95;
-    }
-    to {
-        scale: 1;
-    }
-}
-
-@keyframes scaleWDown {
-    from {
-        scale: 1;
-    }
-    to {
-        scale: 0.95;
-    }
 }
 
 @media only screen and (max-width: 400px) {

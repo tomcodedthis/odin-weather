@@ -374,10 +374,13 @@ setTimeout(() => {
     const hourConts = hoursCont.querySelectorAll('.hour-cont');
 
     hourConts.forEach(cont => cont.addEventListener('mouseenter', scaleWidget))
+    hourConts.forEach(cont => cont.addEventListener('mouseleave', shrinkWidget))
 }, 100);
 
 function scaleWidget() {
-    this.style.animation = "scaleUp 400ms";
-    // this.style.scale = "1.15";
-    // console.log(this)
+    this.style.transform = "scale(1.1)"
+}
+
+function shrinkWidget() {
+    this.style.transform = "scale(1)"
 }
